@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <title>Catch Me If You Can 😈</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+
+    body{
+      margin:0;
+      overflow:hidden;
+      height:100vh;
+      background:black;
+      font-family:Arial;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      flex-direction:column;
+      color:white;
+      touch-action:none;
+    }
+
+    h1{
+      position:absolute;
+      top:30px;
+      text-align:center;
+      padding:20px;
+      font-size:28px;
+    }
+
+    #score{
+      position:absolute;
+      top:100px;
+      font-size:24px;
+    }
+
+    button{
+      padding:18px 35px;
+      font-size:22px;
+      border:none;
+      border-radius:20px;
+      cursor:pointer;
+      position:absolute;
+
+      transition:
+      left 0.08s,
+      top 0.08s,
+      background 0.2s;
+    }
+
+    /* Jumpscare */
+    #jumpscare{
+      position:fixed;
+      inset:0;
+      background:red;
+      display:none;
+      justify-content:center;
+      align-items:center;
+      font-size:70px;
+      z-index:999;
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <h1 id="text">Catch the button 😈</h1>
+
+  <div id="score">
+    Score: 0
+  </div>
+
+  <button id="btn">
+    CLICK ME
+  </button>
+
+  <div id="jumpscare">
+    👹
+  </div>
+
+  <script>
+
+    const btn = document.getElementById("btn");
+    const text = document.getElementById("text");
+    const scoreText = document.getElementById("score");
+    const jumpscare = document.getElementById("jumpscare");
+
+    let score = 0;
+
+    const messages = [
+      "TOO SLOW 💀",
+      "BRO MISSED 😭",
+      "NO CHANCE 😈",
+      "SKILL ISSUE 🔥",
+      "ALMOST LOL",
+      "TRY HARDER 👹"
+    ];
+
+    function moveButton(){
+
+      const maxX = window.innerWidth - btn.offsetWidth;
+      const maxY = window.innerHeight - btn.offsetHeight;
+
+      const x = Math.random() * maxX;
+      const y = Math.random() * maxY;
+
+      btn.style.left = x + "px";
+      btn.style.top = y + "px";
+
+      document.body.style.background =
+      `rgb(${rand()},${rand()},${rand()})`;
+
+      text.innerText =
+      messages[Math.floor(Math.random()*messages.length)];
+    }
+
+    // Desktop hover
+    btn.addEventListener("mouseover", moveButton);
+
+    // Mobile touch
+    btn.addEventListener("touchstart", (e) => {
+      e.preventDefault();
+      moveButton();
+    });
+
+    // Successful click
+    btn.addEventListener("click", () => {
+
+      score++;
+
+      scoreText.innerText =
+      "Score: " + score;
+
+      text.innerText =
+      "YOU CAUGHT IT 😭";
+
+      moveButton();
+
+      // Jumpscare at 5 points
+      if(score === 5){
+
+        jumpscare.style.display = "flex";
+
+        setTimeout(() => {
+          jumpscare.style.display = "none";
+        }, 1000);
+
+      }
+
+    });
+
+    function rand(){
+      return Math.floor(Math.random()*255);
+    }
+
+  </script>
+
+</body>
+</html>
