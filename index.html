@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Catch Me If You Can 🔥</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:Arial,sans-serif}
+body{background:#111;color:#fff;height:100vh;overflow:hidden;touch-action:manipulation}
+#startScreen,#gameScreen,#endScreen{width:100%;height:100vh}
+#startScreen,#endScreen{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:14px;padding:20px;text-align:center}
+input{padding:14px;font-size:18px;border:none;border-radius:12px;width:min(320px,90vw)}
+.startBtn{padding:14px 24px;font-size:18px;border:none;border-radius:12px;cursor:pointer}
+#gameScreen{display:none;position:relative}
+#topBar{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;font-size:clamp(18px,4vw,24px);z-index:10}
+#message{position:fixed;top:60px;left:10px;right:10px;text-align:center;font-size:clamp(18px,5vw,28px);font-weight:bold}
+#chaosBtn{
+position:absolute;min-width:140px;min-height:70px;
+padding:20px 30px;font-size:22px;border:none;border-radius:20px;
+cursor:pointer;transition:transform .15s, box-shadow .15s;
+}
+.fire{animation:fireGlow .5s infinite alternate}
+@keyframes fireGlow{
+from{box-shadow:0 0 10px orange}
+to{box-shadow:0 0 25px red,0 0 50px orange}
+}
+#leaderboard{
+position:fixed;left:10px;right:10px;bottom:10px;
+background:rgba(255,255,255,.08);
+padding:10px;border-radius:12px;
+}
+#leaderboard ol{padding-left:22px}
+#endScreen{display:none}
+</style>
+</head>
+<body>
+
+<div id="startScreen">
+<h1>🔥 Catch Me If You Can 🔥</h1>
+<input id="playerName" placeholder="Enter your name">
+<button class="startBtn" onclick="startGame()">START CHAOS</button>
+</div>
+
+<div id="gameScreen">
+<div id="topBar">
+<div>Score: <span id="score">0</span></div>
+<div>Combo: <span id="combo">0</span></div>
+</div>
+
+<div id="message">Catch the button 😈</div>
+
+<button id="chaosBtn">CLICK ME</button>
+
+<div id="leaderboard">
+<h3>🏆 Top Players</h3>
+<ol id="leaderboardList"></ol>
+</div>
+</div>
+
+<div id="endScreen">
+<h1>🎉 YOU BEAT THE CHAOS 🎉</h1>
+<h2 id="finalScore"></h2>
+<p>Touching grass is recommended 😭</p>
+</div>
+
+<script>
+let score=0,combo=0,playerName="",missTimer;
+const btn=document.getElementById("chaosBtn");
+const scoreText=document.getElementById("score");
+const comboText=document.getElementById("combo");
+const message=document.getElementById("message");
+
+const messages=[
+"TOO SLOW 💀","NICE TRY 😭","SKILL ISSUE 😈",
+"YOU GOT THIS 🔥","LOCK IN 👀","ABSOLUTE CINEMA 🎬"
+];
+
+function startGame(){
+playerName=document.getElementById("playerName").value.trim();
+if(!playerName){alert("Enter your name!");return;}
+document.getElementById("startScreen").style.display="none";
+document.getElementById("gameScreen").style.display="block";
+updateLeaderboard();
+moveButton();
+resetMissTimer();
+}
+
+function handleClick(e){
+e.preventDefault();
+score++;
+combo++;
+
+if(combo>=3){
+btn.classList.add("fire");
+score+=1;
+if(navigator.vibrate) navigator.vibrate(80);
+}
+
+scoreText.textContent=score;
+comboText.textContent=combo;
+
+randomMessage();
+randomSize();
+moveButton();
+resetMissTimer();
+
+if(score>=50) endGame();
+}
+
+btn.addEventListener("click",handleClick);
+btn.addEventListener("touchstart",handleClick,{passive:false});
+
+function moveButton(){
+const maxX=Math.max(0,window.innerWidth-btn.offsetWidth);
+const maxY=Math.max(100,window.innerHeight-btn.offsetHeight-160);
+
+btn.style.left=(Math.random()*maxX)+"px";
+btn.style.top=(100+Math.random()*(maxY-100))+"px";
+}
+
+function randomMessage(){
+message.textContent=messages[Math.floor(Math.random()*messages.length)];
+}
+
+function randomSize(){
+const r=Math.random();
+if(r<0.2){
+btn.style.transform="scale(.7)";
+message.textContent="GOOD LUCK FINDING IT 💀";
+}else if(r>0.8){
+btn.style.transform="scale(1.5)";
+message.textContent="EVEN YOU CAN'T MISS THIS 😭";
+}else{
+btn.style.transform="scale(1)";
+}
+}
+
+function resetMissTimer(){
+clearTimeout(missTimer);
+missTimer=setTimeout(()=>{
+combo=0;
+comboText.textContent=0;
+btn.classList.remove("fire");
+message.textContent="Your fire was extinguished 😭";
+},3000);
+}
+
+function endGame(){
+saveScore();
+document.getElementById("gameScreen").style.display="none";
+document.getElementById("endScreen").style.display="flex";
+document.getElementById("finalScore").textContent=`${playerName} scored ${score}`;
+}
+
+function saveScore(){
+let scores=JSON.parse(localStorage.getItem("chaosScores")||"[]");
+scores.push({name:playerName,score});
+scores.sort((a,b)=>b.score-a.score);
+scores=scores.slice(0,3);
+localStorage.setItem("chaosScores",JSON.stringify(scores));
+}
+
+function updateLeaderboard(){
+let scores=JSON.parse(localStorage.getItem("chaosScores")||"[]");
+const list=document.getElementById("leaderboardList");
+list.innerHTML="";
+scores.forEach(s=>{
+const li=document.createElement("li");
+li.textContent=`${s.name} - ${s.score}`;
+list.appendChild(li);
+});
+}
+</script>
+</body>
+</html>

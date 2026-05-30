@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chaos Game Phase 3</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif}
+body{background:#111;color:#fff;height:100vh;overflow:hidden}
+#start,#game,#end{width:100%;height:100vh}
+#start,#end{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:15px;padding:20px;text-align:center}
+#game{display:none;position:relative}
+input,button{border:none;border-radius:12px}
+input{padding:14px;width:min(320px,90vw)}
+#top{position:fixed;top:10px;left:10px;right:10px;display:flex;justify-content:space-between;z-index:10}
+#msg{position:fixed;top:50px;left:10px;right:10px;text-align:center;font-weight:bold}
+.btn{position:absolute;min-width:130px;min-height:65px;padding:18px 28px;font-size:20px;border-radius:20px}
+.fire{box-shadow:0 0 20px orange,0 0 40px red;animation:pulse .4s infinite alternate}
+@keyframes pulse{from{transform:scale(1)}to{transform:scale(1.08)}}
+#board{position:fixed;bottom:10px;left:10px;right:10px;background:#ffffff14;padding:10px;border-radius:12px}
+#jump{display:none;position:fixed;inset:0;background:#000d;z-index:100;justify-content:center;align-items:center;font-size:42px;text-align:center;padding:20px}
+.rainbow{animation:rainbow 1s linear infinite}
+@keyframes rainbow{
+0%{background:#f00}20%{background:#ff0}40%{background:#0f0}60%{background:#0ff}80%{background:#00f}100%{background:#f0f}
+}
+#end{display:none}
+</style>
+</head>
+<body>
+<div id="start">
+<h1>🔥 CHAOS GAME PHASE 3 🔥</h1>
+<input id="name" placeholder="Enter your name">
+<button onclick="startGame()">START</button>
+</div>
+
+<div id="game">
+<div id="top"><div>Score: <span id="score">0</span></div><div>Combo: <span id="combo">0</span></div></div>
+<div id="msg">Catch the button 😈</div>
+<button id="mainBtn" class="btn">CLICK ME</button>
+<div id="board"><h3>🏆 Top Players</h3><ol id="list"></ol></div>
+</div>
+
+<div id="jump"></div>
+
+<div id="end">
+<h1>🎉 YOU BEAT THE CHAOS 🎉</h1>
+<h2 id="final"></h2>
+</div>
+
+<script>
+let score=0,combo=0,player="",timer,boss=false;
+const btn=document.getElementById('mainBtn');
+
+function startGame(){
+player=document.getElementById('name').value.trim();
+if(!player)return alert('Enter your name');
+start.style.display='none';
+game.style.display='block';
+updateBoard();
+move(btn);
+resetTimer();
+}
+
+function clickMain(e){
+e.preventDefault();
+score++;
+combo++;
+
+if(combo>=3){
+btn.classList.add('fire');
+if(combo>=5) msg.textContent='🔥🔥 INFERNO MODE';
+if(combo>=10) msg.textContent='☢️ NUCLEAR BUTTON';
+score++;
+navigator.vibrate?.(80);
+}
+
+if(Math.random()<0.10) jump();
+if(Math.random()<0.08) rainbowMode();
+if(Math.random()<0.01) trollEvent();
+
+if(score>=25 && !boss){
+boss=true;
+spawnBoss();
+}
+
+document.getElementById('score').textContent=score;
+document.getElementById('combo').textContent=combo;
+
+move(btn);
+resetTimer();
+
+if(score>=50) endGame();
+}
+
+btn.addEventListener('click',clickMain);
+btn.addEventListener('touchstart',clickMain,{passive:false});
+
+function move(el){
+const maxX=window.innerWidth-el.offsetWidth;
+const maxY=window.innerHeight-el.offsetHeight-180;
+el.style.left=Math.random()*Math.max(0,maxX)+'px';
+el.style.top=(90+Math.random()*Math.max(0,maxY-90))+'px';
+}
+
+function jump(){
+const arr=['SKILL ISSUE 💀','BRO IS COOKED 🍳','LOCKED IN 🔥','TOUCH GRASS 🌱','ABSOLUTE CINEMA 🎬'];
+jumpDiv.style.display='flex';
+jumpDiv.textContent=arr[Math.floor(Math.random()*arr.length)];
+setTimeout(()=>jumpDiv.style.display='none',1000);
+}
+const jumpDiv=document.getElementById('jump');
+
+function rainbowMode(){
+document.body.classList.add('rainbow');
+msg.textContent='🌈 RAINBOW CHAOS';
+setTimeout(()=>document.body.classList.remove('rainbow'),5000);
+}
+
+function trollEvent(){
+let old=score;
+msg.textContent='YOUR SCORE HAS BEEN RESET 😭';
+score=0;
+document.getElementById('score').textContent=0;
+setTimeout(()=>{
+score=old;
+document.getElementById('score').textContent=score;
+msg.textContent='Just kidding 😭';
+},2000);
+}
+
+function spawnBoss(){
+msg.textContent='👑 BOSS MODE';
+for(let i=0;i<3;i++){
+const fake=document.createElement('button');
+fake.className='btn';
+fake.textContent='FAKE';
+move(fake);
+fake.onclick=()=>{
+score=Math.max(0,score-2);
+combo=0;
+document.getElementById('score').textContent=score;
+document.getElementById('combo').textContent=combo;
+fake.remove();
+};
+game.appendChild(fake);
+}
+}
+
+function resetTimer(){
+clearTimeout(timer);
+timer=setTimeout(()=>{
+combo=0;
+document.getElementById('combo').textContent=0;
+btn.classList.remove('fire');
+msg.textContent='Your fire was extinguished 😭';
+},3000);
+}
+
+function endGame(){
+save();
+game.style.display='none';
+end.style.display='flex';
+final.textContent=player+' scored '+score;
+}
+
+function save(){
+let s=JSON.parse(localStorage.getItem('chaosScores')||'[]');
+s.push({name:player,score});
+s.sort((a,b)=>b.score-a.score);
+localStorage.setItem('chaosScores',JSON.stringify(s.slice(0,3)));
+}
+
+function updateBoard(){
+let s=JSON.parse(localStorage.getItem('chaosScores')||'[]');
+list.innerHTML='';
+s.forEach((x,i)=>{
+const medals=['🥇','🥈','🥉'];
+const li=document.createElement('li');
+li.textContent=(medals[i]||'🏅')+' '+x.name+' - '+x.score;
+list.appendChild(li);
+});
+}
+</script>
+</body>
+</html>
